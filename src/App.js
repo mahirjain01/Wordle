@@ -28,7 +28,7 @@ function App() {
     const transaction = {
       type: "entry_function_payload",
       function: `${address}::test5::populate_word`,
-      arguments: [2, [97, 112, 116, 111, 115]],
+      arguments: [5, [97, 112, 116, 111, 115]],
       type_arguments: [],
     };
 
@@ -44,7 +44,7 @@ function App() {
       const key = await window.aptos.signAndSubmitTransaction(keyPress);
       console.log(key);
       const res2 = await provider.getAccountResource(
-        address,
+        "0x0fc6f90cffc13c8eb5312cfe1ed45f716a59cdfe524deef655bc1fe94408a2d8",
         `${address}::test5::IdToWordle`
       );
       console.log(res2);

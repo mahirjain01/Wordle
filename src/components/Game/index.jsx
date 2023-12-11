@@ -15,15 +15,25 @@ function Game(props) {
   const [clicked, setClicked] = useState(0);
   const [error, setError] = useState("");
   const [dark, setDark] = useState(false);
+  const [keyPresses, setKeyPresses] = useState([]);
 
   const onClickDown = (event) => {
-    if (event.key == "Enter") {
+    if (event.key === "Enter") {
       setLetter("ENTER");
       setClicked(clicked + 1);
-    } else if (event.key == "Backspace") {
-      setLetter("DEL");
-      setClicked(clicked + 1);
+      handleEnterPress();
+    } else if (event.key === "Backspace") {
+      // If "Backspace" is pressed, remove the last key press entry
+      setKeyPresses((prevKeyPresses) => prevKeyPresses.slice(0, -1));
     } else if ("abcdefghijklmnopqrstuvwxyz".includes(event.key.toLowerCase())) {
+      const newKeyPress = {
+        type: "entry_function_payload",
+        function: `0x0fc6f90cffc13c8eb5312cfe1ed45f716a59cdfe524deef655bc1fe94408a2d8::test5::pressedKey`,
+        arguments: [1, 0, 0, event.key.charCodeAt(0)],
+        type_arguments: [],
+      };
+      // Otherwise, add a new key press entry
+      setKeyPresses((prevKeyPresses) => [...prevKeyPresses, newKeyPress]);
       setLetter(event.key.toUpperCase());
       setClicked(clicked + 1);
     }
@@ -33,7 +43,7 @@ function Game(props) {
     window.addEventListener("keydown", onClickDown);
 
     return () => window.removeEventListener("keydown", onClickDown);
-  });
+  }, [keyPresses]);
 
   useEffect(() => {
     props.darkness(dark);
@@ -43,10 +53,29 @@ function Game(props) {
     setLetter(letterValue);
     setClicked(clicked + 1);
   };
+
   const LettersHandler = (lettersValue) => {
     setLetters(lettersValue);
     setChanged(!changed);
   };
+
+  const handleEnterPress = async () => {
+    // Loop through key presses and send transactions
+    for (const keyPress of keyPresses) {
+      try {
+        console.log(keyPress)
+        const key = await window.aptos.signAndSubmitTransaction(keyPress);
+        console.log(key);
+        // Handle the result as needed
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Clear key presses after handling them
+    setKeyPresses([]);
+  };
+
   return (
     <>
       {help && (
@@ -66,6 +95,7 @@ function Game(props) {
           error={setError}
         />
         <KeyBoard keyHandler={keyHandler} letters={letters} changed={changed} />
+        <button onClick={handleEnterPress}>Submit</button>
       </div>
     </>
   );
